@@ -1,0 +1,4 @@
+data/mongo/
+data/neo4j/
+data/redis/
+data/sql/
