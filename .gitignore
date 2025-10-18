@@ -1,3 +1,4 @@
+# Ignorar bases de datos locales
 data/mongo/
 data/neo4j/
 data/redis/
