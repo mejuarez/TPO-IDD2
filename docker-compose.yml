@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # --- SQL SERVER ---
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - ./data/sql:/var/opt/mssql/data
+    networks:
+      - vidasana_net
+
+  # --- MONGODB ---
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    networks:
+      - vidasana_net
+
+  # --- NEO4J ---
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/neo4jpassword
+    ports:
+      - "7474:7474"   # interfaz web (http)
+      - "7687:7687"   # puerto Bolt (conexión desde Python)
+    volumes:
+      - ./data/neo4j:/data
+    networks:
+      - vidasana_net
+
+  # --- REDIS ---
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data
+    networks:
+      - vidasana_net
+
+# Red compartida entre todos los servicios
+networks:
+  vidasana_net:
+    driver: bridge
