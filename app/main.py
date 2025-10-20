@@ -1,12 +1,9 @@
-# main.py
-from medico import crear_medico, existe_medico
+from medico import crear_medico, existe_medico, obtener_medico_por_matricula
 from paciente import crear_paciente, existe_paciente
 from consultas import (
     obtener_paciente_por_dni, obtener_pacientes_por_tipo_sangre,
-    obtener_pacientes_por_medico, obtener_medico_por_matricula,
-    obtener_medicos_por_especialidad
+    obtener_pacientes_por_medico, obtener_medicos_por_especialidad
 )
-from bson import ObjectId
 from utils import limpiar_paciente, limpiar_medico, limpiar_lista
 
 # ---------------------------
