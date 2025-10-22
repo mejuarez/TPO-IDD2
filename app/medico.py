@@ -24,8 +24,10 @@ def crear_medico(matricula, username, password, especialidad, email):
     medico_id = medicos.insert_one(medico_doc).inserted_id
     return {"status": "ok", "message": "Médico creado exitosamente", "id": medico_id}
 
+
 def existe_medico(matricula):
     return medicos.find_one({"matricula": matricula}) is not None
+
 
 def editar_medico(matricula, nuevos_datos):
     """Actualiza los datos de un médico y timestamp"""
@@ -35,11 +37,13 @@ def editar_medico(matricula, nuevos_datos):
         return {"status": "error", "message": "Médico no encontrado"}
     return {"status": "ok", "message": "Datos actualizados correctamente"}
 
+
 def eliminar_medico(matricula):
     result = medicos.delete_one({"matricula": matricula})
     if result.deleted_count == 0:
         return {"status": "error", "message": "Médico no encontrado"}
     return {"status": "ok", "message": "Médico eliminado correctamente"}
+
 
 def obtener_medico_por_matricula(matricula, ocultar_sensible=True):
     """Devuelve los datos de un médico, filtrando datos sensibles si se indica"""
@@ -49,3 +53,9 @@ def obtener_medico_por_matricula(matricula, ocultar_sensible=True):
     if ocultar_sensible:
         medico.pop("password", None)
     return medico
+
+
+# 🔹 NUEVA FUNCIÓN
+def obtener_medicos():
+    """Devuelve todos los médicos registrados en la base de datos"""
+    return list(medicos.find({}, {"password": 0}))

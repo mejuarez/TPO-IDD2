@@ -6,6 +6,32 @@ from consultas import (
 )
 from utils import limpiar_paciente, limpiar_medico, limpiar_lista
 
+from conex_mongo import get_mongo_connection
+from turno import registrar_turno, obtener_turnos, obtener_recordatorios
+from redis import Redis
+from pymongo.errors import DuplicateKeyError
+from datetime import datetime
+import random
+
+# ---------------------------
+# Conexiones
+# ---------------------------
+print("Conectando a MongoDB...")
+db = get_mongo_connection()
+print("✅ Conectado a MongoDB")
+
+# Conexión Redis
+try:
+    redis_client = Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    redis_client.ping()
+    print("✅ Conectado a Redis correctamente.")
+except Exception as e:
+    print(f"❌ Error al conectar a Redis: {e}")
+    redis_client = None
+
+if redis_client:
+    redis_client.flushdb()  # limpiar Redis al inicio para pruebas
+
 # ---------------------------
 # Médicos a crear
 # ---------------------------
@@ -16,13 +42,10 @@ medicos_a_crear = [
 ]
 
 medico_ids = {}
-
-# Crear médicos solo si no existen
 for m in medicos_a_crear:
     if not existe_medico(m["matricula"]):
         resultado = crear_medico(m["matricula"], m["username"], m["password"], m["especialidad"], m["email"])
         print(f"Médico {m['username']}: {resultado}")
-    # Obtener ObjectId real del médico
     medico_doc = obtener_medico_por_matricula(m["matricula"])
     if medico_doc:
         medico_ids[m["matricula"]] = medico_doc["_id"]
@@ -47,7 +70,40 @@ for p in pacientes_a_crear:
         print(f"Paciente {p['nombre']}: {resultado}")
 
 # ---------------------------
-# Consultas
+# Configurar colección turnos
+# ---------------------------
+db.turnos.delete_many({})
+print("🧹 Colección 'turnos' limpiada para pruebas.")
+
+try:
+    db.turnos.create_index(
+        [("id_paciente", 1), ("id_medico", 1), ("fecha_hora", 1)],
+        unique=True
+    )
+    print("🔑 Índice único creado sobre (id_paciente, id_medico, fecha_hora)")
+except DuplicateKeyError:
+    print("⚠️ El índice único ya existía, continuando...")
+
+# ---------------------------
+# Registrar turnos aleatorios
+# ---------------------------
+print("\n--- REGISTRO DE TURNOS ---")
+for _ in range(4):
+    registrar_turno(db, redis_client)
+
+# ---------------------------
+# Consultas de turnos y recordatorios
+# ---------------------------
+print("\n--- Turnos en MongoDB ---")
+obtener_turnos(db)
+
+recordatorios = obtener_recordatorios(redis_client)
+print("\n--- Recordatorios activos en Redis ---")
+for r in recordatorios:
+    print(f"{r['clave']} -> {r['mensaje']} (TTL: {r['ttl_segundos']} seg)")
+
+# ---------------------------
+# Consultas originales
 # ---------------------------
 print("\n--- Consultas ---\n")
 
@@ -66,3 +122,5 @@ print("Médico con matrícula M001:", medico)
 
 cardiologos = limpiar_lista(obtener_medicos_por_especialidad("Cardiología"), "medico")
 print("Médicos especialistas en Cardiología:", cardiologos)
+
+print("\n🏁 Fin de ejecución.")
