@@ -5,16 +5,27 @@ from consultas import (
     obtener_pacientes_por_medico, obtener_medicos_por_especialidad
 )
 from utils import limpiar_paciente, limpiar_medico, limpiar_lista
-
 from conex_mongo import get_mongo_connection
+from neo_grafos import (
+    limpiar_neo4j,
+    crear_medico_neo,
+    crear_paciente_neo,
+    relacion_paciente_medico
+)
+from conex_neo import get_driver
 from turno import registrar_turno, obtener_turnos, obtener_recordatorios
 from redis import Redis
 from pymongo.errors import DuplicateKeyError
 from datetime import datetime
 import random
 
+# --- Limpieza inicial ---
+print("\n🧹 Limpiando Neo4j...")
+limpiar_neo4j()
+
+
 # ---------------------------
-# Conexiones
+# Conexión MongoDB
 # ---------------------------
 print("Conectando a MongoDB...")
 db = get_mongo_connection()
@@ -49,6 +60,8 @@ for m in medicos_a_crear:
     medico_doc = obtener_medico_por_matricula(m["matricula"])
     if medico_doc:
         medico_ids[m["matricula"]] = medico_doc["_id"]
+        # === Crear médico en Neo4j ===
+        crear_medico_neo(m["matricula"], m["username"], m["especialidad"], m["email"])
 
 # ---------------------------
 # Pacientes a crear
@@ -68,6 +81,10 @@ for p in pacientes_a_crear:
             p["telefono"], p["tipo_de_sangre"], medico_ids[p["medico_id"]]
         )
         print(f"Paciente {p['nombre']}: {resultado}")
+    # === Crear paciente en Neo4j ===
+    crear_paciente_neo(p["dni"], p["nombre"], p["tipo_de_sangre"], p["email"])
+    # === Crear relación Paciente -> Médico en Neo4j ===
+    relacion_paciente_medico(p["dni"], p["medico_id"])
 
 # ---------------------------
 # Configurar colección turnos
@@ -107,7 +124,6 @@ for r in recordatorios:
 # ---------------------------
 print("\n--- Consultas ---\n")
 
-# Buscar paciente por DNI
 pac = limpiar_paciente(obtener_paciente_por_dni("12345678"))
 print("Paciente con DNI 12345678:", pac)
 
