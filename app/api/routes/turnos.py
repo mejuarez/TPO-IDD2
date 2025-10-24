@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from bson import ObjectId
 from datetime import datetime
 from ..services.mongo import get_db
-from app.conex_neo import get_driver
+from ..services.neo import get_driver
 
 router = APIRouter(prefix="/turnos", tags=["Turnos"])
 
@@ -40,7 +40,7 @@ def get_turnos_por_medico(matricula: str):
     turnos = [serialize_doc(t) for t in db["turnos"].find({"id_medico": medico_id})]
     return {"count": len(turnos), "medico": {"matricula": matricula, "nombre": medico.get("username")}, "turnos": turnos}
 
-@router.get("/paciente/{dni}")
+@router.get("/turnos/paciente/{dni}")
 def get_turnos_por_paciente(dni: str):
     db = get_db()
     paciente = db["pacientes"].find_one({"dni": dni})

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 from ..services.mongo import get_db
 from ..services.redis import get_redis
-from app.conex_neo import get_driver
+from ..services.neo import get_driver
 
 router = APIRouter(prefix="/pacientes", tags=["Pacientes"])
 
@@ -164,7 +164,7 @@ def generar_sintomas(dni: str, request: SintomaIn):
         raise HTTPException(status_code=404, detail=f"Paciente con DNI {dni} no encontrado en MongoDB.")
 
     try:
-        r = get_redis()  # usamos tu helper que ya lee host y puerto del .env
+        r = get_redis()  
         key = f"sintomas:paciente:{dni}"
         r.rpush(key, request.sintoma)
 

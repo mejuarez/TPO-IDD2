@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from bson import ObjectId
 from ..services.mongo import get_db
-from app.conex_neo import get_driver
+from ..services.neo import get_driver
 
 router = APIRouter(prefix="/medicos", tags=["Médicos"])
 

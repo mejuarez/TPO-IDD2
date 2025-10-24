@@ -1,18 +1,24 @@
-# Script para correr la API desde app/api
-# Asegura que el servidor se levante desde la carpeta correcta
+# Script para correr la API VidaSana
+# Asegura que el servidor se levante correctamente
 
-Write-Host "🚀 Iniciando VidaSana API desde app/api..." -ForegroundColor Green
+Write-Host "🚀 Iniciando VidaSana API..." -ForegroundColor Green
 
-# Cambiar al directorio app
-Set-Location -Path "$PSScriptRoot\app"
+# Cambiar al directorio raíz del proyecto
+Set-Location -Path "$PSScriptRoot"
 
-# Verificar que el entorno virtual está activado
+# Activar entorno virtual
 if (-not $env:VIRTUAL_ENV) {
     Write-Host "⚠️  Activando entorno virtual..." -ForegroundColor Yellow
     & "$PSScriptRoot\.venv\Scripts\Activate.ps1"
 }
 
-# Correr uvicorn apuntando a api.main:app
+# Configurar PYTHONPATH para que Python encuentre el módulo 'app'
+$env:PYTHONPATH = "$PSScriptRoot"
+
+# Correr uvicorn apuntando a app.api.main:app
 Write-Host "📡 API corriendo en http://localhost:8000" -ForegroundColor Cyan
 Write-Host "📄 Documentación en http://localhost:8000/docs" -ForegroundColor Cyan
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+Write-Host "🛑 Presiona CTRL+C para detener el servidor" -ForegroundColor Yellow
+Write-Host ""
+
+& "$PSScriptRoot\.venv\Scripts\python.exe" -m uvicorn app.api.main:app --host 0.0.0.0 --port 8000 --reload

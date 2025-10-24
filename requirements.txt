@@ -1,4 +1,8 @@
+fastapi
+uvicorn[standard]
 bcrypt
 pymongo
 redis
 dnspython
+pydantic
+neo4j
